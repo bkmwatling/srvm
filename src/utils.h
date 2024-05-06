@@ -1,6 +1,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#define UNUSED(var) ((void) &var)
+
 #define ENSURE_SPACE(arr, len, alloc, size)           \
     do {                                              \
         if ((len) >= (alloc)) {                       \
@@ -23,5 +25,40 @@
         strncpy((s) + (len), (str), (alloc) - (len));              \
         (len) += sizeof(str) - 1;                                  \
     } while (0)
+
+#define DLL_INIT(dll)                            \
+    do {                                         \
+        (dll)       = calloc(1, sizeof(*(dll))); \
+        (dll)->prev = (dll)->next = (dll);       \
+    } while (0)
+
+#define DLL_FREE(dll, elem_free, elem, next)                           \
+    do {                                                               \
+        for ((elem) = (dll)->next; (elem) != (dll); (elem) = (next)) { \
+            (next) = (elem)->next;                                     \
+            (elem_free)((elem));                                       \
+        }                                                              \
+        free((dll));                                                   \
+    } while (0)
+
+#define DLL_PUSH_FRONT(dll, elem)         \
+    do {                                  \
+        (elem)->prev       = (dll);       \
+        (elem)->next       = (dll)->next; \
+        (elem)->next->prev = (elem);      \
+        (dll)->next        = (elem);      \
+    } while (0)
+
+#define DLL_PUSH_BACK(dll, elem)          \
+    do {                                  \
+        (elem)->prev       = (dll)->prev; \
+        (elem)->next       = (dll);       \
+        (dll)->prev        = (elem);      \
+        (elem)->prev->next = (elem);      \
+    } while (0)
+
+#define DLL_GET(dll, idx, elem)                              \
+    for ((elem) = (dll)->next; (idx) > 0 && (elem) != (dll); \
+         (idx)--, (elem) = (elem)->next)
 
 #endif /* UTILS_H */
